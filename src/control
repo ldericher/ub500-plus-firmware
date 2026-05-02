@@ -4,6 +4,7 @@ Section: non-free/kernel
 Priority: optional
 Architecture: %%PKG_ARCH%%
 Conflicts: %%PKG_CNF%%
-Installed-Size: 50
+Installed-Size: 32
 Maintainer: Jörn-Michael Miehe <40151420+ldericher@users.noreply.github.com>
+Pre-Depends: coreutils, curl, dpkg, unzip, zstd
 Description: Firmware for rtl8761bu supporting bluetooth %%BT_VER%%. Overrides the file provided by linux-firmware.

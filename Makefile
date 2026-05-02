@@ -8,12 +8,12 @@ ifeq ($(HW_VER),v1)
     HW_VER := v1
     HW_CNF := v2
     BT_VER := 5.3 (hci version 12)
-else ifeq ($(HW_VER),$(filter $(HW_VER),v2 v2.60))
+else ifeq ($(HW_VER),v2)
     HW_VER := v2
     HW_CNF := v1
     BT_VER := 5.4 (hci version 13)
 else
-    $(error HW_VER must be "v1", "v2" or "v2.60"!)
+    $(error HW_VER must be "v1" or "v2"!)
 endif
 
 #############
@@ -32,18 +32,25 @@ DEB_CONT := \
 	DEBIAN/postinst \
 	DEBIAN/prerm
 
-DEB_FILE := "$(PKG_NAME)_$(PKG_VER)_$(PKG_ARCH).deb"
+DEB_FILE := $(PKG_NAME)_$(PKG_VER)_$(PKG_ARCH).deb
 
 ########
 # MAIN #
 ########
 
 .PHONY: all
-all: $(DEB_FILE)
+all: deb-v1 deb-v2
 
-.PHONY: install
+.PHONY: deb deb-%
+deb: $(DEB_FILE)
+deb-%:
+	$(MAKE) deb HW_VER=$*
+
+.PHONY: install install-%
 install: $(DEB_FILE)
 	dpkg --install $<
+install-%: deb-%
+	$(MAKE) install HW_VER=$*
 
 .PHONY: clean
 clean: 

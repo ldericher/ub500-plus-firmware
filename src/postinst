@@ -44,11 +44,12 @@ chmod 0644 'driver.zst' || true
 # add a local divert so our file takes precedence over linux-firmware's file
 _divert_count="$(dpkg-divert --list "${FW_PATH}" 2>/dev/null | wc -l)"
 if [ "${_divert_count}" = "0" ]; then
-  mv "${FW_PATH}" "${FW_PATH}.distrib" || true
+  mv "${FW_PATH}" "${FW_PATH}.orig" || true
 
   dpkg-divert \
     --package "${PKG_NAME}" \
     --add \
+    --divert "${FW_PATH}.orig" \
     --rename \
     "${FW_PATH}"
 fi
@@ -62,7 +63,11 @@ cd "${OLDPWD}"
 rm -rf "${_tmp_dir}"
 
 # update initramfs
-command -v update-initramfs \
+command -v update-initramfs >/dev/null \
   && update-initramfs -u || true
+
+# reload usb bluetooth driver
+command -v update-initramfs >/dev/null \
+  && modprobe -r btusb && modprobe btusb || true
 
 exit 0

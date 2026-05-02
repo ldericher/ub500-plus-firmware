@@ -13,6 +13,7 @@ if dpkg-divert --list "${FW_PATH}" >/dev/null 2>&1; then
   dpkg-divert \
     --package "${PKG_NAME}" \
     --remove \
+    --divert "${FW_PATH}.orig" \
     --rename \
     "${FW_PATH}" \
   || true
@@ -21,5 +22,9 @@ fi
 # update initramfs
 command -v update-initramfs \
   && update-initramfs -u || true
+
+# reload usb bluetooth driver
+command -v update-initramfs >/dev/null \
+  && modprobe -r btusb && modprobe btusb || true
 
 exit 0
