@@ -1,0 +1,25 @@
+#!/bin/sh
+
+set -e
+
+PKG_NAME='%%PKG_NAME%%'
+FW_PATH='%%FW_PATH%%'
+
+# remove our file
+rm -f "${FW_PATH}"
+
+# remove divert on package removal (only if this package created it)
+if dpkg-divert --list "${FW_PATH}" >/dev/null 2>&1; then
+  dpkg-divert \
+    --package "${PKG_NAME}" \
+    --remove \
+    --rename \
+    "${FW_PATH}" \
+  || true
+fi
+
+# update initramfs
+command -v update-initramfs \
+  && update-initramfs -u || true
+
+exit 0

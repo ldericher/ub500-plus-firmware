@@ -1,0 +1,68 @@
+#!/bin/sh
+
+set -e
+
+PKG_NAME='%%PKG_NAME%%'
+FW_PATH='%%FW_PATH%%'
+
+case "${PKG_NAME}" in
+  *'-v1-'*)
+    _fw_uri='https://static.tp-link.com/upload/driver/2024/202407/20240729/UB500Plus_V1_driver_Windows_1.9.1051.3012.zip'
+    _fw_sha='03b91fcc95bfca0fa53922fb99c10653a2da453dbf9197acb695230399e0470f'
+    _fw_dat='UB500Plus_V1_driver_Windows_1.9.1051.3012/BT_Driver/Win11X64/rtl8761b_mp_chip_bt40_fw_asic_rom_patch_new.dat'
+    ;;
+  *'-v2-'*)
+    _fw_uri='https://static.tp-link.com/upload/driver/2025/202510/20251021/UB5A_V3_UB500Plus_V2.zip'
+    _fw_sha='f8410be649c508bc8c1b176552a5819d8c72c2f5c5c7357822ec1d6158221c2e'
+    _fw_dat='UB5A_V3_UB500Plus_V2/Driver/Windows_11_64bit/rtl8761b_mp_chip_bt40_fw_asic_rom_patch_new.dat'
+    ;;
+  *)
+    false
+    ;;
+esac
+
+_tmp_dir="$(mktemp --directory)"
+cd "${_tmp_dir}"
+
+# download, check and unzip driver
+curl -fsSL \
+  --output "driver.zip" \
+  "${_fw_uri}"
+
+echo "${_fw_sha} driver.zip" > 'driver.zip.sha256'
+sha256sum --check 'driver.zip.sha256'
+
+unzip -qq 'driver.zip' -d "${_tmp_dir}"
+
+# make compressed firmware blob
+zstd \
+  --compress --quiet --threads=0 --ultra -22 \
+  "${_fw_dat}" \
+  -o 'driver.zst'
+chmod 0644 'driver.zst' || true
+
+# add a local divert so our file takes precedence over linux-firmware's file
+_divert_count="$(dpkg-divert --list "${FW_PATH}" 2>/dev/null | wc -l)"
+if [ "${_divert_count}" = "0" ]; then
+  mv "${FW_PATH}" "${FW_PATH}.distrib" || true
+
+  dpkg-divert \
+    --package "${PKG_NAME}" \
+    --add \
+    --rename \
+    "${FW_PATH}"
+fi
+
+# install our file
+install -m 644 'driver.zst' "${FW_PATH}" \
+  || cp 'driver.zst' "${FW_PATH}"
+
+# remove temp directory
+cd "${OLDPWD}"
+rm -rf "${_tmp_dir}"
+
+# update initramfs
+command -v update-initramfs \
+  && update-initramfs -u || true
+
+exit 0

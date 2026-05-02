@@ -1,0 +1,9 @@
+Package: %%PKG_NAME%%
+Version: %%PKG_VER%%
+Section: non-free/kernel
+Priority: optional
+Architecture: %%PKG_ARCH%%
+Conflicts: %%PKG_CNF%%
+Installed-Size: 50
+Maintainer: Jörn-Michael Miehe <40151420+ldericher@users.noreply.github.com>
+Description: Firmware for rtl8761bu supporting bluetooth %%BT_VER%%. Overrides the file provided by linux-firmware.

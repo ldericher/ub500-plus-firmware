@@ -1,7 +1,0 @@
-Package: ub500-plus-v1-firmware
-Version: 1.9.1051.3012
-Section: non-free/kernel
-Priority: optional
-Architecture: all
-Maintainer: Jörn-Michael Miehe <40151420+ldericher@users.noreply.github.com>
-Description: Firmware for rtl8761bu supporting bluetooth 5.3 (version 12). Overrides the file provided by linux-firmware.
